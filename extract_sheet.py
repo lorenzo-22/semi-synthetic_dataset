@@ -70,9 +70,9 @@ def make_sample_labels(df):
         if len(str(sample)) > 0:
             group = str(sample)[0]
             # Assign label based on group
-            sample_labels[sample] = '1' if group == 'A' else '0'
+            sample_labels[sample] = 1 if group == 'A' else 0
         else:
-            sample_labels[sample] = '0'
+            sample_labels[sample] = 0
     
     sample_labels_df = pd.DataFrame.from_dict(
         sample_labels, orient='index', columns=['label']
@@ -146,12 +146,12 @@ if __name__ == "__main__":
     df_data.to_csv(output_file)
     print(f"\nSaved dataset to '{output_file}'")
     
-    # Save protein labels separately (without header)
-    labels_df = df[['is_differentially_expressed']]
-    labels_df.to_csv(protein_labels_file, header=False)
+    # Save protein labels separately (protein_id, label - no header)
+    protein_labels = df['is_differentially_expressed']
+    protein_labels.to_csv(protein_labels_file, header=False)
     print(f"Saved true protein labels to '{protein_labels_file}'")
     
-    # Save sample labels separately (without header)
+    # Save sample labels separately (sample_id, label - no header)
     sample_labels = make_sample_labels(df_data)
-    sample_labels.to_csv(sample_labels_file, header=False, index=False)
+    sample_labels.to_csv(sample_labels_file, header=False)
     print(f"Saved true sample labels to '{sample_labels_file}'")
