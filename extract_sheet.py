@@ -100,8 +100,8 @@ if __name__ == "__main__":
     parser.add_argument(
         "--excel_file",
         type=str,
-        required=True,
-        help="Path to Excel file"
+        default="raw_ss_dataset.xlsx",
+        help="Path to Excel file (relative to script location)"
     )
     parser.add_argument(
         "--sheet",
@@ -112,8 +112,20 @@ if __name__ == "__main__":
     
     args = parser.parse_args()
     
+    # Get the directory where this script is located
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    
+    # Construct full path to Excel file
+    # If excel_file is relative, join with script directory
+    if not os.path.isabs(args.excel_file):
+        excel_path = os.path.join(script_dir, args.excel_file)
+    else:
+        excel_path = args.excel_file
+    
+    print(f"Looking for Excel file at: {excel_path}")
+    
     # Extract data from Excel
-    df = extract_and_transform(args.excel_file, args.sheet)
+    df = extract_and_transform(excel_path, args.sheet)
     
     # Create output directory if needed
     os.makedirs(args.output_dir, exist_ok=True)
