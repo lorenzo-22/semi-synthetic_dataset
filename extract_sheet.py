@@ -51,6 +51,9 @@ def extract_and_transform(excel_file, sheet_index=6):
     # Set "Majority protein IDs" as index
     df = df.set_index('Majority protein IDs')
     
+    # Rename all proteins to Prot0, Prot1, Prot2, etc.
+    df.index = [f'Prot{i}' for i in range(len(df))]
+    
     # Select only the log intensity columns
     log_columns = ['A1 (log)', 'A2 (log)', 'A3 (log)', 'B1 (log)', 'B2 (log)', 'B3 (log)']
     df_intensities = df[log_columns].copy()
