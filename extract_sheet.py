@@ -30,16 +30,20 @@ def extract_and_transform(excel_file, sheet_index=6):
     print(f"\nOriginal data shape: {df.shape}")
     print(f"Columns: {list(df.columns)}")
     
-    # Assuming first column is protein IDs and rest are sample intensities
-    # Set first column as index
-    protein_col = df.columns[0]
-    df = df.set_index(protein_col)
+    # Set "Majority protein IDs" as index
+    df = df.set_index('Majority protein IDs')
     
-    # Create label column
+    # Select only the log intensity columns
+    log_columns = ['A1 (log)', 'A2 (log)', 'A3 (log)', 'B1 (log)', 'B2 (log)', 'B3 (log)']
+    df_intensities = df[log_columns].copy()
+    
+    # Rename columns to remove " (log)" suffix
+    df_intensities.columns = ['A1', 'A2', 'A3', 'B1', 'B2', 'B3']
+    
+    # Create label column based on protein IDs
     # UPS1 proteins typically have "UPS" or "ups" in their ID
-    # Yeast proteins typically have different naming
     labels = []
-    for protein_id in df.index:
+    for protein_id in df_intensities.index:
         protein_str = str(protein_id).upper()
         # Label as 1 if it contains UPS, 0 otherwise (yeast)
         if 'UPS' in protein_str:
@@ -48,13 +52,13 @@ def extract_and_transform(excel_file, sheet_index=6):
             labels.append(0)
     
     # Add labels as column
-    df['is_differentially_expressed'] = labels
+    df_intensities['is_differentially_expressed'] = labels
     
-    print(f"\nData shape: {df.shape}")
+    print(f"\nData shape: {df_intensities.shape}")
     print(f"UPS1 proteins (label=1): {sum(labels)}")
     print(f"Yeast proteins (label=0): {len(labels) - sum(labels)}")
     
-    return df
+    return df_intensities
 
 
 def make_sample_labels(df):
