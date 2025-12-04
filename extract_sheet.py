@@ -30,6 +30,24 @@ def extract_and_transform(excel_file, sheet_index=6):
     print(f"\nOriginal data shape: {df.shape}")
     print(f"Columns: {list(df.columns)}")
     
+    # Clean up protein IDs before setting as index
+    # Handle cases like "P06396ups;CON__Q3SX14" -> "P06396ups"
+    # Handle cases like ">O76070ups|SYUG_HUMAN_UPS..." -> "O76070ups"
+    def clean_protein_id(protein_id):
+        protein_str = str(protein_id)
+        # Remove leading ">" if present
+        if protein_str.startswith('>'):
+            protein_str = protein_str[1:]
+        # Split by ";" and take first part
+        if ';' in protein_str:
+            protein_str = protein_str.split(';')[0]
+        # Split by "|" and take first part
+        if '|' in protein_str:
+            protein_str = protein_str.split('|')[0]
+        return protein_str.strip()
+    
+    df['Majority protein IDs'] = df['Majority protein IDs'].apply(clean_protein_id)
+    
     # Set "Majority protein IDs" as index
     df = df.set_index('Majority protein IDs')
     
@@ -145,8 +163,9 @@ if __name__ == "__main__":
     print("\nFirst 5 rows:")
     print(df.head())
     
-    # Save main dataset to CSV (without labels column)
+    # Save main dataset to CSV (without labels column, no index name header)
     df_data = df.drop(columns=['is_differentially_expressed'])
+    df_data.index.name = None  # Remove index name to avoid header for first column
     df_data.to_csv(output_file)
     print(f"\nSaved dataset to '{output_file}'")
     
