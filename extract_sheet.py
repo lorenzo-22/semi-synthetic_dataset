@@ -153,5 +153,5 @@ if __name__ == "__main__":
     
     # Save sample labels separately (without header)
     sample_labels = make_sample_labels(df_data)
-    sample_labels.to_csv(sample_labels_file, header=False)
+    sample_labels.to_csv(sample_labels_file, header=False, index=False)
     print(f"Saved true sample labels to '{sample_labels_file}'")
