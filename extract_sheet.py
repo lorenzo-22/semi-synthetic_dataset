@@ -30,9 +30,10 @@ def extract_and_transform(excel_file, sheet_index=6):
     print(f"\nOriginal data shape: {df.shape}")
     print(f"Columns: {list(df.columns)}")
     
+    # Store the Species column before processing
+    species_column = df['Species'].copy()
+    
     # Clean up protein IDs before setting as index
-    # Handle cases like "P06396ups;CON__Q3SX14" -> "P06396ups"
-    # Handle cases like ">O76070ups|SYUG_HUMAN_UPS..." -> "O76070ups"
     def clean_protein_id(protein_id):
         protein_str = str(protein_id)
         # Remove leading ">" if present
@@ -51,8 +52,14 @@ def extract_and_transform(excel_file, sheet_index=6):
     # Set "Majority protein IDs" as index
     df = df.set_index('Majority protein IDs')
     
+    # Create labels based on Species column BEFORE renaming proteins
+    # UPS proteins have 'UPS' in the Species column, yeast have 'yeast' or similar
+    labels = species_column.str.upper().str.contains('UPS', na=False).astype(int)
+    
     # Rename all proteins to Prot0, Prot1, Prot2, etc.
-    df.index = [f'Prot{i}' for i in range(len(df))]
+    new_protein_ids = [f'Prot{i}' for i in range(len(df))]
+    df.index = new_protein_ids
+    labels.index = new_protein_ids
     
     # Select only the log intensity columns
     log_columns = ['A1 (log)', 'A2 (log)', 'A3 (log)', 'B1 (log)', 'B2 (log)', 'B3 (log)']
@@ -61,23 +68,12 @@ def extract_and_transform(excel_file, sheet_index=6):
     # Rename columns to remove " (log)" suffix
     df_intensities.columns = ['A1', 'A2', 'A3', 'B1', 'B2', 'B3']
     
-    # Create label column based on protein IDs
-    # UPS1 proteins typically have "UPS" or "ups" in their ID
-    labels = []
-    for protein_id in df_intensities.index:
-        protein_str = str(protein_id).upper()
-        # Label as 1 if it contains UPS, 0 otherwise (yeast)
-        if 'UPS' in protein_str:
-            labels.append(1)
-        else:
-            labels.append(0)
-    
     # Add labels as column
     df_intensities['is_differentially_expressed'] = labels
     
     print(f"\nData shape: {df_intensities.shape}")
-    print(f"UPS1 proteins (label=1): {sum(labels)}")
-    print(f"Yeast proteins (label=0): {len(labels) - sum(labels)}")
+    print(f"UPS proteins (label=1): {labels.sum()}")
+    print(f"Yeast proteins (label=0): {len(labels) - labels.sum()}")
     
     return df_intensities
 
